@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Portfolio van Céline Lelong, student MCT XR Development aan Howest. Interactief 3D-atelier met projecten in VR, IoT en Blender.">
+<meta property="og:title" content="Céline Lelong · XR Development">
+<meta property="og:description" content="Ontdek mijn projecten in een interactief 3D-atelier.">
+<meta name="theme-color" content="#131028">
+<title>Portfolio - Céline Lelong</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Young+Serif&display=swap">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+<canvas id="scene" data-t-aria="sceneAria" aria-label="Interactief 3D-eiland met Célines projecten"></canvas>
+
+<div id="loader" role="status"><div class="loader-inner"><span class="lamp"></span><p data-t="loader">Het atelier gaat open…</p></div></div>
+
+<header class="brand">
+  <p class="eyebrow">Portfolio · XR Development · Howest MCT</p>
+  <h1>Céline <span>Lelong</span></h1>
+  <p class="tagline" data-t="tagline">Ik bouw werelden die je met je handen ontdekt: in VR, in 3D en met een beetje hardware.</p>
+  <button class="badge" type="button" data-open="about"><i></i><span data-t-html="badge"><b>Zoekt een stage</b> · Feb – Jun 2027</span></button>
+</header>
+
+<div class="lang" role="group" aria-label="Taal / Language">
+  <button type="button" data-lang="nl" aria-pressed="true" title="Nederlands">NL</button>
+  <button type="button" data-lang="en" aria-pressed="false" title="English">EN</button>
+</div>
+
+<div id="labels"></div>
+
+<p class="hint"><span data-t="hint">Klik op een object om het project te openen</span><small data-t="hintSmall">sleep om te draaien · zoom met scroll of twee vingers</small></p>
+
+<p class="copy" data-t="copyright">© 2026 Céline Lelong. Alle rechten voorbehouden.</p>
+
+<nav class="dock" data-t-aria="mainMenu" aria-label="Hoofdmenu">
+  <button class="primary" type="button" id="btn-all" data-t="allProjects">Alle projecten</button>
+  <button type="button" data-open="about" data-t="aboutMe">Over mij</button>
+  <button type="button" data-open="contact" data-t="contact">Contact</button>
+</nav>
+
+<aside id="panel" aria-hidden="true" aria-labelledby="panel-title">
+  <div class="panel-top"><span class="where" id="panel-where"></span><button class="icon-btn" type="button" id="panel-close" data-t-aria="closePanel" aria-label="Sluiten en terug naar het eiland">✕</button></div>
+  <div class="panel-body" id="panel-body"></div>
+  <nav class="panel-nav" id="panel-nav"></nav>
+</aside>
+
+<div id="modal" aria-hidden="true">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="sheet-head">
+      <div><h2 id="modal-title" data-t="allProjects">Alle projecten</h2><p data-t="modalSub">Van IoT in het eerste jaar tot een VR-trainer voor een echte opdrachtgever.</p><p class="no3d-note" data-t="no3d">De 3D-weergave kan niet laden in deze browser, dus je ziet de projecten hier als lijst.</p></div>
+      <button class="icon-btn" type="button" id="modal-close" data-t-aria="close" aria-label="Sluiten">✕</button>
+    </div>
+    <div class="rows" id="rows"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+const IMG = {
+  tagrun:'Content/TagRun/TagrunFoto.jpg',
+  me:'Content/FotoCV.jpg'
+};
+window.PORTFOLIO_IMG = IMG;
+
+// ---------- language ----------
+const T = {
+  nl:{
+    sceneAria:'Interactief 3D-eiland met Célines projecten', loader:'Het atelier gaat open…',
+    tagline:'Ik bouw werelden die je met je handen ontdekt: in VR, in 3D en met een beetje hardware.',
+    badge:'<b>Zoekt een stage</b> · Feb – Jun 2027',
+    hint:'Klik op een object om het project te openen', hintSmall:'sleep om te draaien · zoom met scroll of twee vingers',
+    mainMenu:'Hoofdmenu', allProjects:'Alle projecten', aboutMe:'Over mij', contact:'Contact',
+    closePanel:'Sluiten en terug naar het eiland', close:'Sluiten',
+    modalSub:'Van IoT in het eerste jaar tot een VR-trainer voor een echte opdrachtgever.',
+    no3d:'De 3D-weergave kan niet laden in deze browser, dus je ziet de projecten hier als lijst.',
+    prev:'← Vorige', next:'Volgende →',
+    S:'Situatie', T:'Taak', A:'Actie', R:'Resultaat',
+    video:'Video', watchDemo:'Bekijk de demo', photo:"Foto's · prototype", viewProto:'Bekijk het prototype',
+    loadModel:'▶ Laad het 3D-model', alsoSketchfab:'Ook op Sketchfab →', no3dModel:'3D kan niet laden in deze browser',
+    vLoading:'Laden…', vHelp:'Sleep om te draaien · zoom in', vFail:'Het model kon niet laden',
+    meAlt:'Portret van Céline Lelong', student:'Student MCT',
+    aboutTitle:'Techniek die je kan vastpakken',
+    aboutLead:'Ik hou van projecten waar techniek en mensen samenkomen: van een VR-werkplaats die je met je handen bedient tot een parkour-timingsysteem. Als leergierige en flexibele maker werk ik proactief aan inventieve oplossingen.',
+    fLang:'Programmeertalen', fSoft:'Programma\'s', fSoftV:'Unity · Blender · Git · AI-tools', fPers:'Persoonlijk', fPersV:'Teamplayer, stressbestendig, analytisch en oplossingsgericht',
+    fTalen:'Talen', fTalenV:'Nederlands (moedertaal) · Engels (vlot) · Frans (vlot)', fMore:'Verder', fMoreV:'Rijbewijs B · woont in Ronse',
+    callout:'<b>Op zoek naar een stage in ICT</b> van begin februari tot begin juni 2027, waar ik mijn kennis van XR-ontwikkeling kan toepassen en verder uitbouwen.',
+    getInTouch:'Neem contact op →',
+    cTitle:'Laten we iets bouwen',
+    cLead:'Zoek je een stagiair voor XR, Unity of interactieve 3D? Ik ben beschikbaar van begin februari tot begin juni 2027 en hoor graag van je.',
+    copyright:'© 2026 Céline Lelong. Alle rechten voorbehouden.',
+    email:'E-mail', copy:'Kopieer', copied:'Gekopieerd', selected:'Geselecteerd', work3d:'3D-werk', location:'Locatie', locationV:'Ronse, België · rijbewijs B'
+  },
+  en:{
+    sceneAria:'Interactive 3D island with Céline\'s projects', loader:'Opening the studio…',
+    tagline:'I build worlds you explore with your hands: in VR, in 3D and with a little hardware.',
+    badge:'<b>Looking for an internship</b> · Feb – Jun 2027',
+    hint:'Click an object to open the project', hintSmall:'drag to rotate · zoom with scroll or two fingers',
+    mainMenu:'Main menu', allProjects:'All projects', aboutMe:'About me', contact:'Contact',
+    closePanel:'Close and return to the island', close:'Close',
+    modalSub:'From IoT in my first year to a VR trainer for a real client.',
+    no3d:'The 3D view can\'t load in this browser, so the projects are shown here as a list.',
+    prev:'← Previous', next:'Next →',
+    S:'Situation', T:'Task', A:'Action', R:'Result',
+    video:'Video', watchDemo:'Watch the demo', photo:'Photos · prototype', viewProto:'View the prototype',
+    loadModel:'▶ Load the 3D model', alsoSketchfab:'Also on Sketchfab →', no3dModel:'3D can\'t load in this browser',
+    vLoading:'Loading…', vHelp:'Drag to rotate · zoom in', vFail:'The model could not load',
+    meAlt:'Portrait of Céline Lelong', student:'MCT Student',
+    aboutTitle:'Technology you can get your hands on',
+    aboutLead:'I love projects where technology and people come together: from a VR workshop you operate with your own hands to a parkour timing system. As an eager and flexible maker, I proactively work on inventive solutions.',
+    fLang:'Programming languages', fSoft:'Software', fSoftV:'Unity · Blender · Git · AI tools', fPers:'Personal', fPersV:'Team player, resilient under pressure, analytical and solution-oriented',
+    fTalen:'Languages', fTalenV:'Dutch (native) · English (fluent) · French (fluent)', fMore:'Other', fMoreV:'Driving licence B · lives in Ronse',
+    callout:'<b>Looking for an ICT internship</b> from early February to early June 2027, where I can apply and further develop my XR development skills.',
+    getInTouch:'Get in touch →',
+    cTitle:'Let\'s build something',
+    cLead:'Looking for an intern in XR, Unity or interactive 3D? I\'m available from early February to early June 2027 and would love to hear from you.',
+    copyright:'© 2026 Céline Lelong. All rights reserved.',
+    email:'Email', copy:'Copy', copied:'Copied', selected:'Selected', work3d:'3D work', location:'Location', locationV:'Ronse, Belgium · driving licence B'
+  }
+};
+let lang='nl';
+try{ const s=localStorage.getItem('lang'); if(s==='nl'||s==='en') lang=s; }catch(e){}
+const t = k => (T[lang] && T[lang][k]!=null) ? T[lang][k] : T.nl[k];
+const L = v => (v && typeof v==='object' && !Array.isArray(v) && ('nl' in v)) ? (v[lang]!=null ? v[lang] : v.nl) : v;
+
+const ITEMS = [
+  { id:'about', label:{nl:'Over mij',en:'About me'}, kind:'about', where:{nl:'De schildersezel',en:'The easel'} },
+  { id:'indumation', label:'Indumation VR', kind:'project', where:{nl:'De werkbank',en:'The workbench'},
+    title:'Indumation VR Trainer', when:{nl:'mei – juni 2026',en:'May – June 2026'}, meta:{nl:'Industrieproject · mei – juni 2026 · team van 3',en:'Industry project · May – June 2026 · team of 3'},
+    short:{nl:'Een VR-werkplaats waar je monteren, solderen en lassen leert met je eigen handen.',en:'A VR workshop where you learn assembly, soldering and welding with your own hands.'},
+    tags:['Unity 2022.3','C#','Meta Quest 3','Hand tracking','Git','Scrum'],
+    S:{nl:'Een industriële opdrachtgever wilde een VR-oefenomgeving voor mensen zonder VR-ervaring, gebouwd door twee teams in één gedeeld Unity-project.',en:'An industrial client wanted a VR training environment for people with no VR experience, built by two teams in one shared Unity project.'},
+    T:{nl:'Vijf werkplaatsgereedschappen bouwen die met hand tracking natuurlijk aanvoelen, goed gedocumenteerd voor andere teams.',en:'Build five workshop tools that feel natural with hand tracking, well documented for other teams.'},
+    A:{nl:['Vijf sprints met Scrum, Notion en burndowncharts.','Realistische fysica, geluid en particle effects, met grote UI voor VR-beginners.','Zes klantmeetings en user testing leverden zeven verbeterpunten op, die we doorvoerden.','Schreef mee aan de user manual, de installation manual en een merge-gids voor de twee teambranches.'],
+       en:['Five sprints with Scrum, Notion and burndown charts.','Realistic physics, sound and particle effects, with a large UI for VR beginners.','Six client meetings and user testing produced seven improvements, which we implemented.','Co-wrote the user manual, the installation manual and a merge guide for the two team branches.']},
+    R:{nl:'De opdrachtgever keurde het project officieel goed, zonder openstaande punten.',en:'The client officially approved the project, with no open issues.'},
+    stats:[['168/172',{nl:'story points gerealiseerd (97,7%)',en:'story points delivered (97.7%)'}],['5',{nl:'gereedschappen met hand tracking',en:'tools with hand tracking'}],['6',{nl:'klantmeetings, 7 verbeterpunten uit user testing',en:'client meetings, 7 improvements from user testing'}],[{nl:'488 u',en:'488 h'},{nl:'teamwerk, 3 personen',en:'teamwork, 3 people'}]] },
+  { id:'tagrun', label:'TagRun', kind:'project', where:{nl:'De finishboog',en:'The finish arch'},
+    title:'TagRun', when:{nl:'nov 2025 – jan 2026',en:'Nov 2025 – Jan 2026'}, meta:{nl:'Teamproject · nov 2025 – jan 2026 · team van 3',en:'Team project · Nov 2025 – Jan 2026 · team of 3'},
+    short:{nl:'Objectieve, betaalbare timing voor parkour en freerunning, met RFID-checkpoints en een live leaderboard.',en:'Objective, affordable timing for parkour and freerunning, with RFID checkpoints and a live leaderboard.'},
+    tags:['ESP32 + LoRa','RFID RC522','Raspberry Pi','Python / FastAPI','React','Socket.IO','Scrum'],
+    video:'Content/TagRun/Demo-Tagrun.mp4', poster:'tagrun', vlen:'0:54', cap:{nl:'Demo van TagRun: een sessie opzetten, lopers registreren en live tijden volgen.',en:'TagRun demo: setting up a session, registering runners and following live times.'},
+    S:{nl:'Parkourclubs hebben geen goede optie om runs objectief te timen: Strava werkt niet binnen, professionele systemen kosten €5.000+.',en:'Parkour clubs have no good way to time runs objectively: Strava doesn\'t work indoors, and professional systems cost €5,000+.'},
+    T:{nl:'Een werkend MVP bouwen: RFID-checkpoints, een centrale server en een webapp met live tussentijden en ranking.',en:'Build a working MVP: RFID checkpoints, a central server and a web app with live split times and rankings.'},
+    A:{nl:['Concurrentieanalyse van Strava, MyLaps, CityLegends en Freelap bepaalde de positionering.','Nam projectmanagement, documentatie en hardware-assemblage op me (102 uur).','Team koos LoRa checkpoint-naar-server, FastAPI met Socket.IO en React voor het dashboard.','Vier sprints, bewaakt met burndowncharts en retrospectives.'],
+       en:['A competitor analysis of Strava, MyLaps, CityLegends and Freelap shaped our positioning.','Took on project management, documentation and hardware assembly (102 hours).','The team chose LoRa for checkpoint-to-server communication, FastAPI with Socket.IO, and React for the dashboard.','Four sprints, tracked with burndown charts and retrospectives.']},
+    R:{nl:'Een werkend prototype: een polsband scannen geeft direct feedback en verschijnt in het leaderboard. Uit de retrospective leerde ik strenger te testen, met een vaste Definition of Done en code freeze.',en:'A working prototype: scanning a wristband gives instant feedback and shows up on the leaderboard. The retrospective taught me to test more rigorously, with a fixed Definition of Done and a code freeze.'},
+    stats:[['4',{nl:'sprints, 180 story points gepland',en:'sprints, 180 story points planned'}],['3',{nl:'RFID-checkpoints op batterij',en:'battery-powered RFID checkpoints'}],['<100 ms',{nl:'leestijd per scan',en:'read time per scan'}],[{nl:'102 u',en:'102 h'},{nl:'eigen inzet',en:'my own contribution'}]] },
+  { id:'lezen', label:{nl:'XR-leesomgeving',en:'XR reading space'}, kind:'project', where:{nl:'De boekenstapel',en:'The book stack'},
+    title:{nl:'Immersieve XR-leesomgeving',en:'Immersive XR Reading Environment'}, when:{nl:'Concept & ontwerp',en:'Concept & design'}, meta:{nl:'XR-project · Unity · Concept & ontwerp',en:'XR project · Unity · Concept & design'},
+    short:{nl:'Een rustige 3D-leesruimte die concentratie en begrip ondersteunt voor mensen met dyslexie of focusproblemen.',en:'A calm 3D reading space that supports focus and comprehension for people with dyslexia or attention difficulties.'},
+    tags:{nl:['Unity','ShaderGraph','Post-processing','XR Interaction','UX-ontwerp'],en:['Unity','ShaderGraph','Post-processing','XR Interaction','UX design']},
+    S:{nl:'Lezen kan overweldigend zijn bij dyslexie of focusproblemen: te veel prikkels, te weinig structuur.',en:'Reading can be overwhelming with dyslexia or attention difficulties: too many stimuli, too little structure.'},
+    T:{nl:'Een 3D-leesomgeving voor desktop en XR ontwerpen, met concentratie als vertrekpunt.',en:'Design a 3D reading environment for desktop and XR, with focus as the starting point.'},
+    A:{nl:['Kernmechanics: instelbare sfeer, een 3D-zandloper als timer, boeken met highlights en 3D-mindmaps met physics.','Visuele richting met ShaderGraph: zachte leesverlichting, highlight glow, subtiele post-processing.','Stappenplan in zeven stappen met scope, tijdsinschatting en Definition of Done per stap.'],
+       en:['Core mechanics: adjustable atmosphere, a 3D hourglass as a timer, books with highlights and 3D mind maps with physics.','Visual direction with ShaderGraph: soft reading light, highlight glow, subtle post-processing.','A seven-step roadmap with scope, time estimate and Definition of Done for each step.']},
+    R:{nl:'Een uitgewerkt concept met haalbare scope, klaar om direct in Unity te bouwen.',en:'A fully worked-out concept with achievable scope, ready to build in Unity right away.'} },
+  { id:'brewbuddy', label:'BrewBuddy', kind:'project', where:{nl:'De koffiehouder',en:'The coffee holder'},
+    title:'BrewBuddy', when:{nl:'1e jaar · 2024 – 2025',en:'1st year · 2024 – 2025'}, meta:{nl:'Project One · 1e jaar MCT · 2024 – 2025',en:'Project One · 1st year MCT · 2024 – 2025'},
+    short:{nl:'Een slimme koffiehouder die de temperatuur en resterende koffie bijhoudt en je waarschuwt voor het te laat is.',en:'A smart coffee holder that tracks temperature and remaining coffee and warns you before it\'s too late.'},
+    tags:{nl:['Raspberry Pi','Python','Sensoren','3D-print','Lasersnijden','UX-onderzoek'],en:['Raspberry Pi','Python','Sensors','3D printing','Laser cutting','UX research']},
+    thumb:'Content/Brewbuddy/brewbuddy-5.jpg', imgs:['Content/Brewbuddy/brewbuddy-1.jpg','Content/Brewbuddy/brewbuddy-2.jpg','Content/Brewbuddy/brewbuddy-3.jpg','Content/Brewbuddy/brewbuddy-4.jpg'], cap:{nl:'Het BrewBuddy-prototype: lasergesneden behuizing met loadcell, ventilatoren, lcd en RFID-lezer.',en:'The BrewBuddy prototype: laser-cut housing with load cell, fans, LCD and RFID reader.'},
+    S:{nl:'In mijn eerste jaar kreeg ik de uitdaging om met IoT koffiegebruik slimmer te maken: mensen vergeten water bij te vullen en laten hun mok afkoelen.',en:'In my first year I was challenged to make coffee drinking smarter with IoT: people forget to refill the water and let their mug go cold.'},
+    T:{nl:'Een gebruikersgericht IoT-product bedenken, bouwen en zo documenteren dat anderen het kunnen nabouwen.',en:'Design and build a user-centred IoT product, and document it so others can rebuild it.'},
+    A:{nl:['Onderzocht gebruikers en bestaande producten, verfijnd tot drie doelgroepsegmenten met een persona.','Bouwde de hardware: temperatuursensor, loadcell voor gewicht, RFID, verwarming en een lcd-scherm op een Raspberry Pi.','Ontwierp de behuizing: 3D-geprinte houder en lasergesneden omkasting.','Publiceerde het bouwproces als Instructable met poster en QR-code.'],
+       en:['Researched users and existing products, narrowed down to three target segments with a persona.','Built the hardware: temperature sensor, load cell for weight, RFID, heating and an LCD screen on a Raspberry Pi.','Designed the housing: a 3D-printed holder and a laser-cut enclosure.','Published the build process as an Instructable with a poster and QR code.']},
+    R:{nl:'Een werkend prototype dat opstart met “BrewBuddy staat aan. Koffietime!” Een goed gedocumenteerd bouwplan bleek minstens zo waardevol als het prototype zelf.',en:'A working prototype that starts up with “BrewBuddy staat aan. Koffietime!” (“BrewBuddy is on. Coffee time!”). A well-documented build guide turned out to be at least as valuable as the prototype itself.'} },
+  { id:'blender', label:'3D in Blender', kind:'models', where:{nl:'De grachtenpanden',en:'The canal houses'},
+    title:{nl:'Modelleren voor games en XR',en:'Modelling for games and XR'}, when:'Blender · 2025 – 2026', meta:{nl:'3D-werk in Blender',en:'3D work in Blender'},
+    short:{nl:'Environments en props, gemodelleerd in Blender en klaar voor een game-engine.',en:'Environments and props, modelled in Blender and ready for a game engine.'},
+    tags:{nl:['Blender','Modelleren','Texturing','Game-ready'],en:['Blender','Modelling','Texturing','Game-ready']},
+    models:[
+      { kind:'Environment', title:'DAE Rowhomes Amsterdam', txt:{nl:'Amsterdamse rijwoningen, gemodelleerd in Blender.',en:'Amsterdam row houses, modelled in Blender.'}, file:'Models/rowhomes.txt', size:'6 MB',
+        url:'https://sketchfab.com/3d-models/dae-rowhomes-amsterdam-e0d5aa1afaa94aa99e5785468ce4cf92' },
+      { kind:'Props', title:{nl:'Vijf afgewerkte props',en:'Five finished props'}, txt:{nl:'Vijf afgewerkte 3D-props uit mijn opleiding, klaar voor een game-engine.',en:'Five finished 3D props from my studies, ready for a game engine.'}, file:'Models/props.txt', size:{nl:'0,3 MB',en:'0.3 MB'},
+        url:'https://sketchfab.com/3d-models/3df-2526-mct-lelong-celine-5finishedprops-e8f82e56409e48138d100a4e4003f21b' }
+    ] },
+  { id:'contact', label:'Contact', kind:'contact', where:{nl:'De brievenbus',en:'The mailbox'} }
+];
+const byId = Object.fromEntries(ITEMS.map(i=>[i.id,i]));
+// ← / → follow the scene circle: Indumation left of Over mij, Contact right of it
+const ORDER = ['about','contact','blender','brewbuddy','tagrun','lezen','indumation'];
+const PROJECTS = ITEMS.filter(i=>i.kind==='project' || i.kind==='models');
+const EMAIL = 'celine.lelong@student.howest.be';
+const cvFile = () => lang==='en' ? 'CV/CV-Engels.pdf' : 'CV/CV-Nederlands.pdf';
+
+const $ = s=>document.querySelector(s);
+const panel=$('#panel'), body=$('#panel-body'), nav=$('#panel-nav'), where=$('#panel-where');
+const modal=$('#modal');
+let current=null, lastFocus=null;
+
+const chips = tg => '<ul class="chips">'+L(tg).map(x=>'<li>#'+x+'</li>').join('')+'</ul>';
+
+function renderProject(p){
+  const cap=L(p.cap);
+  let h = '<p class="meta">'+L(p.meta)+'</p><h2 id="panel-title">'+L(p.title)+'</h2><p class="lead">'+L(p.short)+'</p>'+chips(p.tags);
+  if(p.video) h += '<details class="demo"><summary><span class="thumb"><img src="'+IMG[p.poster]+'" alt=""><i>▶</i></span><span class="dtxt"><small>'+t('video')+' · '+p.vlen+'</small><b>'+t('watchDemo')+'</b></span><span class="chev" aria-hidden="true">⌄</span></summary><div class="demo-body"><video controls playsinline preload="none" poster="'+IMG[p.poster]+'" src="'+p.video+'"></video><p>'+cap+'</p></div></details>';
+  if(p.imgs) h += '<details class="demo"><summary><span class="thumb"><img src="'+(p.thumb||p.imgs[0])+'" alt=""></span><span class="dtxt"><small>'+t('photo')+' · '+p.imgs.length+'</small><b>'+t('viewProto')+'</b></span><span class="chev" aria-hidden="true">⌄</span></summary><div class="demo-body"><div class="gallery">'+p.imgs.map(src=>'<a href="'+src+'" target="_blank" rel="noopener"><img src="'+src+'" alt="'+cap+'" loading="lazy"></a>').join('')+'</div><p>'+cap+'</p></div></details>';
+  h += '<dl class="star">'
+    + '<div><dt>'+t('S')+'</dt><dd>'+L(p.S)+'</dd></div>'
+    + '<div><dt>'+t('T')+'</dt><dd>'+L(p.T)+'</dd></div>'
+    + '<div><dt>'+t('A')+'</dt><dd><ul>'+L(p.A).map(a=>'<li>'+a+'</li>').join('')+'</ul></dd></div>'
+    + '<div><dt>'+t('R')+'</dt><dd>'+L(p.R)+'</dd></div></dl>';
+  if(p.stats) h += '<div class="stats">'+p.stats.map(s=>'<div class="stat"><b>'+L(s[0])+'</b><span>'+L(s[1])+'</span></div>').join('')+'</div>';
+  return h;
+}
+function renderModels(p){
+  let h = '<p class="meta">'+L(p.meta)+'</p><h2 id="panel-title">'+L(p.title)+'</h2><p class="lead">'+L(p.short)+'</p>';
+  p.models.forEach(m=>{
+    const view = '<div class="view" data-view><svg class="wire" viewBox="0 0 160 90" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g><path d="M80 14 108 30 108 62 80 78 52 62 52 30Z"/><path d="M80 14 80 46 108 30M80 46 52 30M80 46 80 78"/><path d="M52 62 80 46 108 62"/></g></svg><button class="play" type="button" data-model="'+m.file+'">'+t('loadModel')+' <small>'+L(m.size)+'</small></button></div>';
+    h += '<article class="model">'+view+'<div class="txt"><span class="kind">'+m.kind+'</span><h3>'+L(m.title)+'</h3><p>'+L(m.txt)+'</p><a class="out" href="'+m.url+'" target="_blank" rel="noopener">'+t('alsoSketchfab')+'</a></div></article>';
+  });
+  return h;
+}
+function renderAbout(){
+  return '<div class="me"><img src="'+IMG.me+'" alt="'+t('meAlt')+'"><p><b>'+t('student')+'</b><small>Multimedia &amp; Creative Technologies</small><span class="role">XR Developer</span></p></div>'
+   + '<h2 id="panel-title" class="about-title">'+t('aboutTitle')+'</h2>'
+   + '<p class="lead">'+t('aboutLead')+'</p>'
+   + '<dl class="facts">'
+   + '<div><dt>'+t('fLang')+'</dt><dd>C# · JavaScript · Python</dd></div>'
+   + '<div><dt>'+t('fSoft')+'</dt><dd>'+t('fSoftV')+'</dd></div>'
+   + '<div><dt>'+t('fPers')+'</dt><dd>'+t('fPersV')+'</dd></div>'
+   + '<div><dt>'+t('fTalen')+'</dt><dd>'+t('fTalenV')+'</dd></div>'
+   + '<div><dt>'+t('fMore')+'</dt><dd>'+t('fMoreV')+'</dd></div>'
+   + '</dl>'
+   + '<div class="callout"><p>'+t('callout')+'</p><button class="pill-btn" type="button" data-open="contact">'+t('getInTouch')+'</button></div>';
+}
+function renderContact(){
+  return '<p class="meta">'+t('contact')+'</p><h2 id="panel-title">'+t('cTitle')+'</h2>'
+   + '<p class="lead">'+t('cLead')+'</p>'
+   + '<div class="contact-list">'
+   + '<div class="contact-row"><div><small>'+t('email')+'</small><span class="v" id="email-text"><a href="mailto:'+EMAIL+'">'+EMAIL+'</a></span></div><button class="pill-btn" type="button" id="copy-email">'+t('copy')+'</button></div>'
+   + '<div class="contact-row"><div><small>LinkedIn</small><span class="v">linkedin.com/in/céline-lelong</span></div><a class="pill-btn" href="https://www.linkedin.com/in/c%C3%A9line-lelong-663878438/" target="_blank" rel="noopener">Open ↗</a></div>'
+   + '<div class="contact-row"><div><small>GitHub</small><span class="v">github.com/CelineLelong</span></div><a class="pill-btn" href="https://github.com/CelineLelong" target="_blank" rel="noopener">Open ↗</a></div>'
+   + '<div class="contact-row"><div><small>'+t('work3d')+'</small><span class="v">sketchfab.com/CelineLelong</span></div><a class="pill-btn" href="https://sketchfab.com/CelineLelong" target="_blank" rel="noopener">Open ↗</a></div>'
+   + '<div class="contact-row"><div><small>'+t('location')+'</small><span class="v">'+t('locationV')+'</span></div></div>'
+   + '<div class="contact-row"><div><small>Curriculum vitae</small><span class="v">CV Céline Lelong · PDF</span></div>'
+   + '<a class="pill-btn" href="'+cvFile()+'" download="CV - Céline Lelong.pdf">Download ↓</a></div>'
+   + '</div>';
+}
+function render(id){
+  const it=byId[id];
+  if(it.kind==='project') return renderProject(it);
+  if(it.kind==='models') return renderModels(it);
+  if(it.kind==='about') return renderAbout();
+  return renderContact();
+}
+function renderNav(id){
+  const i=ORDER.indexOf(id), prev=byId[ORDER[(i-1+ORDER.length)%ORDER.length]], next=byId[ORDER[(i+1)%ORDER.length]];
+  nav.innerHTML='<button type="button" data-open="'+prev.id+'"><small>'+t('prev')+'</small><span>'+L(prev.label)+'</span></button><button type="button" data-open="'+next.id+'"><small>'+t('next')+'</small><span>'+L(next.label)+'</span></button>';
+}
+function renderRows(){
+  $('#rows').innerHTML = PROJECTS.map(p=>'<button class="row" type="button" data-open="'+p.id+'"><span class="when">'+L(p.when)+'</span><span><span class="rt">'+L(p.title)+'</span><span class="rp">'+L(p.short)+'</span><span class="chips">'+L(p.tags).slice(0,5).map(x=>'<span>#'+x+'</span>').join('')+'</span></span><span class="go" aria-hidden="true">→</span></button>').join('');
+}
+
+function open(id, opts={}){
+  if(!byId[id]) return;
+  closeModal(false);
+  if(!current) lastFocus=document.activeElement;
+  current=id;
+  where.textContent=L(byId[id].where);
+  body.innerHTML=render(id);
+  body.scrollTop=0;
+  renderNav(id);
+  panel.classList.add('open'); panel.setAttribute('aria-hidden','false');
+  document.body.classList.add('focused','panel-open');
+  try{ if(location.hash!=='#'+id) history.replaceState(null,'','#'+id); }catch(e){}
+  if(window.Scene) window.Scene.focus(id);
+  if(!opts.keepFocus) setTimeout(()=>$('#panel-close').focus({preventScroll:true}),50);
+}
+function close(){
+  if(!current) return;
+  current=null;
+  body.querySelectorAll('video').forEach(v=>v.pause());
+  panel.classList.remove('open'); panel.setAttribute('aria-hidden','true');
+  document.body.classList.remove('focused','panel-open');
+  try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){}
+  if(window.Scene) window.Scene.overview();
+  if(lastFocus && lastFocus.focus) lastFocus.focus({preventScroll:true});
+}
+function step(d){ if(!current) return; const i=ORDER.indexOf(current); open(ORDER[(i+d+ORDER.length)%ORDER.length],{keepFocus:true}); }
+
+function openModal(){ lastFocus=document.activeElement; modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); setTimeout(()=>$('#modal-close').focus({preventScroll:true}),50); }
+function closeModal(restore=true){ if(!modal.classList.contains('open')) return; modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); if(restore && lastFocus && lastFocus.focus) lastFocus.focus({preventScroll:true}); }
+$('#btn-all').addEventListener('click',openModal);
+$('#modal-close').addEventListener('click',()=>closeModal());
+modal.addEventListener('click',e=>{ if(e.target===modal) closeModal(); });
+$('#panel-close').addEventListener('click',close);
+
+// labels (positioned by the 3D scene)
+const labels=$('#labels');
+ITEMS.forEach(it=>{ const b=document.createElement('button'); b.type='button'; b.className='tag3d'; b.dataset.open=it.id; b.dataset.id=it.id; labels.appendChild(b); });
+
+function setLang(l, save){
+  lang = (l==='en') ? 'en' : 'nl';
+  if(save){ try{ localStorage.setItem('lang',lang); }catch(e){} }
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-t]').forEach(el=>{ el.textContent=t(el.dataset.t); });
+  document.querySelectorAll('[data-t-html]').forEach(el=>{ el.innerHTML=t(el.dataset.tHtml); });
+  document.querySelectorAll('[data-t-aria]').forEach(el=>{ el.setAttribute('aria-label',t(el.dataset.tAria)); });
+  document.querySelectorAll('.lang [data-lang]').forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.lang===lang)));
+  labels.querySelectorAll('.tag3d').forEach(b=>{ b.textContent=L(byId[b.dataset.id].label); });
+  renderRows();
+  if(current){
+    const st=body.scrollTop;
+    body.querySelectorAll('video').forEach(v=>v.pause());
+    where.textContent=L(byId[current].where); body.innerHTML=render(current); renderNav(current); body.scrollTop=st;
+  }
+}
+
+document.addEventListener('click',e=>{
+  const lg=e.target.closest('[data-lang]'); if(lg){ setLang(lg.dataset.lang,true); return; }
+  const o=e.target.closest('[data-open]'); if(o){ e.preventDefault(); open(o.dataset.open); return; }
+  const md=e.target.closest('[data-model]');
+  if(md){ const v=md.closest('[data-view]'); if(window.Viewer){ window.Viewer.mount(v, md.dataset.model); } else { md.outerHTML='<span class="play">'+t('no3dModel')+'</span>'; } return; }
+  if(e.target.id==='copy-email'){
+    const btn=e.target, done=()=>{btn.textContent=t('copied'); setTimeout(()=>btn.textContent=t('copy'),1800);};
+    const sel=()=>{ const r=document.createRange(); r.selectNodeContents(document.getElementById('email-text')); const s=getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent=t('selected'); };
+    try{ navigator.clipboard.writeText(EMAIL).then(done,sel); }catch(err){ sel(); }
+  }
+});
+document.addEventListener('toggle',e=>{ const d=e.target; if(d.classList&&d.classList.contains('demo')){ const v=d.querySelector('video'); if(v){ if(d.open) v.play().catch(()=>{}); else v.pause(); } } },true);
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){ if(modal.classList.contains('open')) closeModal(); else close(); }
+  if(current && !modal.classList.contains('open') && (e.key==='ArrowRight'||e.key==='ArrowLeft') && !e.target.closest('input,textarea')){ step(e.key==='ArrowRight'?1:-1); }
+});
+
+function ready(){ $('#loader').classList.add('done'); }
+function fallback(){
+  if(document.body.classList.contains('no3d')) return;
+  document.body.classList.add('no3d'); ready(); openModal();
+}
+window.UI={open,ready,fallback,t,get current(){return current;}};
+
+setLang(lang,false);
+const initial=(location.hash||'').slice(1);
+if(byId[initial]) open(initial,{keepFocus:true});
+setTimeout(()=>{ if(!window.__scene3d) fallback(); },12000);
+})();
+</script>
+
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+const UI = window.UI;
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const canvas = document.getElementById('scene');
+let renderer;
+try{
+  renderer = new THREE.WebGLRenderer({canvas, antialias:true, powerPreference:'high-performance'});
+}catch(e){ UI.fallback(); throw e; }
+window.__scene3d = true;
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.15;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog('#2a1f48', 24, 62);
+const camera = new THREE.PerspectiveCamera(40, innerWidth/innerHeight, 0.1, 300);
+
+// ---------- helpers ----------
+const mat = (color, extra={}) => new THREE.MeshStandardMaterial({color, roughness:.85, metalness:0, flatShading:true, ...extra});
+const glow = (color, k=1.2) => new THREE.MeshStandardMaterial({color, emissive:color, emissiveIntensity:k, roughness:.45, flatShading:true});
+function mesh(geo, m, x=0, y=0, z=0){ const o=new THREE.Mesh(geo,m); o.position.set(x,y,z); o.castShadow=true; o.receiveShadow=true; return o; }
+const Box=(w,h,d)=>new THREE.BoxGeometry(w,h,d);
+const Cyl=(a,b,h,s=10)=>new THREE.CylinderGeometry(a,b,h,s);
+function hash3(x,y,z){ const k=(Math.round(x*100)*73856093) ^ (Math.round(y*100)*19349663) ^ (Math.round(z*100)*83492791); const r=n=>{ const s=Math.sin(k*0.0001+n*12.9898)*43758.5453; return (s-Math.floor(s))*2-1; }; return [r(1),r(2),r(3)]; }
+function jitter(geo, amt, keep){ const p=geo.attributes.position, v=new THREE.Vector3(); for(let i=0;i<p.count;i++){ v.fromBufferAttribute(p,i); if(keep && keep(v)) continue; const h=hash3(v.x,v.y,v.z); p.setXYZ(i, v.x+h[0]*amt, v.y+h[1]*amt*.6, v.z+h[2]*amt); } p.needsUpdate=true; geo.computeVertexNormals(); return geo; }
+function dotTexture(){ const c=document.createElement('canvas'); c.width=c.height=64; const g=c.getContext('2d'); const gr=g.createRadialGradient(32,32,0,32,32,32); gr.addColorStop(0,'rgba(255,255,255,1)'); gr.addColorStop(.25,'rgba(255,225,170,.85)'); gr.addColorStop(1,'rgba(255,200,120,0)'); g.fillStyle=gr; g.fillRect(0,0,64,64); const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; return t; }
+const animators=[];
+
+// ---------- model viewer (Blender exports) ----------
+window.Viewer={
+  mount(host, url){
+    host.querySelectorAll('.play,.wire').forEach(n=>n.remove()); host.classList.add('big');
+    const cv=document.createElement('canvas'); cv.setAttribute('aria-label','3D-model, sleep om te draaien'); host.appendChild(cv);
+    const stat=document.createElement('span'); stat.className='vstat'; stat.textContent=UI.t('vLoading')+' 0%'; host.appendChild(stat);
+    let r; try{ r=new THREE.WebGLRenderer({canvas:cv, antialias:true, alpha:true}); }catch(e){ stat.textContent=UI.t('no3dModel'); return; }
+    r.setPixelRatio(Math.min(devicePixelRatio,2)); r.outputColorSpace=THREE.SRGBColorSpace; r.toneMapping=THREE.ACESFilmicToneMapping; r.toneMappingExposure=1.0;
+    const sc=new THREE.Scene(); const pm=new THREE.PMREMGenerator(r); sc.environment=pm.fromScene(new RoomEnvironment(),.04).texture;
+    const sun=new THREE.DirectionalLight('#fff1dc',1.6); sun.position.set(5,10,6); sc.add(sun); sc.add(new THREE.HemisphereLight('#c9c2ff','#2b203d',.6));
+    const cam=new THREE.PerspectiveCamera(38,1,.01,2000);
+    const oc=new OrbitControls(cam,cv); oc.enableDamping=true; oc.autoRotate=!reduce; oc.autoRotateSpeed=1.1; oc.enablePan=false;
+    oc.addEventListener('start',()=>{ oc.autoRotate=false; });
+    let home=null;
+    const size=()=>{ const w=host.clientWidth,h=host.clientHeight; if(!w||!h) return; r.setSize(w,h,false); cam.aspect=w/h; cam.updateProjectionMatrix(); };
+    const ro=new ResizeObserver(size); ro.observe(host); size();
+    const onModel = g=>{
+      const root=g.scene; sc.add(root);
+      const box=new THREE.Box3().setFromObject(root), c=box.getCenter(new THREE.Vector3()), sz=box.getSize(new THREE.Vector3());
+      root.position.sub(c); const rad=sz.length()/2;
+      const d=rad/Math.sin(THREE.MathUtils.degToRad(cam.fov/2))*.6;
+      cam.position.set(d*.62,d*.42,d*.66); cam.near=rad/100; cam.far=rad*20; cam.updateProjectionMatrix();
+      oc.target.set(0,0,0); oc.minDistance=rad*.35; oc.maxDistance=rad*3; oc.update();
+      home=cam.position.clone();
+      stat.textContent=UI.t('vHelp');
+      const rb=document.createElement('button'); rb.type='button'; rb.className='vreset'; rb.textContent='Reset'; host.appendChild(rb);
+      rb.addEventListener('click',()=>{ cam.position.copy(home); oc.target.set(0,0,0); oc.autoRotate=!reduce; });
+    };
+    const onErr = err=>{ console.error('model', err); stat.textContent=UI.t('vFail')+' ('+((err&&err.message)||err)+').'; };
+    (async()=>{
+      const res=await fetch(url); if(!res.ok) throw new Error('HTTP '+res.status);
+      const total=+res.headers.get('content-length')||0; let text='';
+      if(res.body && res.body.getReader){ const rd=res.body.getReader(), dec=new TextDecoder(); let got=0;
+        for(;;){ const {done,value}=await rd.read(); if(done) break; got+=value.length; text+=dec.decode(value,{stream:true}); if(total) stat.textContent=UI.t('vLoading')+' '+Math.min(99,Math.round(got/total*100))+'%'; }
+        text+=dec.decode(); }
+      else text=await res.text();
+      const bin=atob(text.trim()), buf=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) buf[i]=bin.charCodeAt(i);
+      const cib=window.createImageBitmap;
+      try{ window.createImageBitmap=undefined; new GLTFLoader().parse(buf.buffer,'',onModel,onErr); }
+      finally{ window.createImageBitmap=cib; }
+    })().catch(onErr);
+    const tick=()=>{ if(!cv.isConnected){ ro.disconnect(); oc.dispose(); r.dispose(); r.forceContextLoss(); return; } oc.update(); r.render(sc,cam); requestAnimationFrame(tick); };
+    requestAnimationFrame(tick);
+  }
+};
+
+// ---------- sky ----------
+const sky = new THREE.Mesh(new THREE.SphereGeometry(120,32,16), new THREE.ShaderMaterial({
+  side:THREE.BackSide, depthWrite:false, fog:false,
+  uniforms:{top:{value:new THREE.Color('#0a0919')}, mid:{value:new THREE.Color('#3a2860')}, low:{value:new THREE.Color('#120e26')}},
+  vertexShader:'varying vec3 vP; void main(){ vP=normalize(position); gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
+  fragmentShader:'uniform vec3 top; uniform vec3 mid; uniform vec3 low; varying vec3 vP; void main(){ float h=vP.y; vec3 c = h>0.0 ? mix(mid, top, smoothstep(0.0,.55,h)) : mix(mid, low, smoothstep(0.0,.45,-h)); gl_FragColor=vec4(c,1.0);\n#include <colorspace_fragment>\n}'
+}));
+scene.add(sky);
+{ const pts=[]; for(let i=0;i<800;i++){ const th=Math.random()*Math.PI*2, y=.05+Math.random()*.93, r=Math.sqrt(1-y*y); pts.push(Math.cos(th)*r*100, y*100, Math.sin(th)*r*100); }
+  const g=new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pts,3));
+  scene.add(new THREE.Points(g, new THREE.PointsMaterial({color:'#fff1d6', size:.45, transparent:true, opacity:.85, fog:false, depthWrite:false}))); }
+
+// ---------- lights ----------
+scene.add(new THREE.HemisphereLight('#9a8ce0','#2b203d',1.25));
+const moon = new THREE.DirectionalLight('#bcc6ff',1.25); moon.position.set(-8,15,7); moon.castShadow=true;
+moon.shadow.mapSize.set(1024,1024); Object.assign(moon.shadow.camera,{left:-10,right:10,top:10,bottom:-10,near:1,far:40}); moon.shadow.camera.updateProjectionMatrix(); moon.shadow.bias=-.0005; moon.shadow.normalBias=.03; scene.add(moon);
+const rim = new THREE.DirectionalLight('#c47bff',.8); rim.position.set(7,5,-11); scene.add(rim);
+const warm = new THREE.PointLight('#ffae5c', 38, 14, 2); warm.position.set(0,1.9,0); scene.add(warm);
+
+// ---------- island ----------
+const world = new THREE.Group(); scene.add(world);
+const stoneM=mat('#5f4d70'), grassM=mat('#5d8a62'), rockM=mat('#3e3052');
+const topDisc = new THREE.Mesh(Cyl(7,6.8,.7,18), [stoneM,grassM,stoneM]); topDisc.position.y=-.35; topDisc.receiveShadow=true; world.add(topDisc);
+const cone = new THREE.ConeGeometry(6.8,6.2,18,4); cone.rotateX(Math.PI); cone.translate(0,-3.8,0);
+jitter(cone,.55,v=>v.y>-.75); const under=new THREE.Mesh(cone,rockM); world.add(under);
+const floaters=[];
+for(let i=0;i<7;i++){ const r=.3+Math.random()*.55; const a=i/7*Math.PI*2+.4; const m=mesh(new THREE.DodecahedronGeometry(r,0), rockM, Math.sin(a)*(9+Math.random()*2.5), -1.5+Math.random()*2.6, Math.cos(a)*(9+Math.random()*2.5)); m.rotation.set(Math.random(),Math.random(),0); scene.add(m); floaters.push({m, y:m.position.y, p:Math.random()*6}); }
+
+// ---------- placement ----------
+const items={}; const hitboxes=[];
+const R=4.5;
+const turn={blender:-.75,brewbuddy:-.3,tagrun:.25};
+const layout={ about:[-40,1.25,2.1], indumation:[-93,1.0,1.8], lezen:[-146,.95,2.0], tagrun:[160,1.1,2.1], brewbuddy:[112,.6,1.4], blender:[66,.95,2.5], contact:[24,1.0,1.7] };
+function place(id, build){
+  const [deg,focusH,labelH]=layout[id]; const a=deg*Math.PI/180;
+  const g=new THREE.Group(); g.position.set(Math.sin(a)*R,0,Math.cos(a)*R); g.rotation.y=a;
+  const inner=new THREE.Group(); inner.rotation.y=turn[id]||0; g.add(inner); build(inner);
+  const ring=new THREE.Mesh(new THREE.RingGeometry(1.02,1.1,56), new THREE.MeshBasicMaterial({color:'#7ff0d2', transparent:true, opacity:.25, depthWrite:false, fog:false}));
+  ring.rotation.x=-Math.PI/2; ring.position.y=.015; g.add(ring);
+  const hb=new THREE.Mesh(Box(2,2.4,2), new THREE.MeshBasicMaterial({visible:false})); hb.position.y=1.1; hb.userData.id=id; g.add(hb); hitboxes.push(hb);
+  world.add(g);
+  items[id]={g, inner, a, ring, focusH, labelH, hover:0, el:document.querySelector('.tag3d[data-id="'+id+'"]')};
+}
+
+// about: easel with portrait
+place('about', g=>{
+  const wood=mat('#9a6b47');
+  [-1,1].forEach(s=>{ const l=mesh(Box(.06,1.85,.06),wood,s*.36,.9,.08); l.rotation.z=s*-.1; l.rotation.x=-.1; g.add(l); });
+  const back=mesh(Box(.06,1.8,.06),wood,0,.85,-.33); back.rotation.x=.34; g.add(back);
+  g.add(mesh(Box(.95,.05,.14),wood,0,.72,.14));
+  const frame=new THREE.Group(); frame.position.set(0,1.24,.1); frame.rotation.x=-.1; g.add(frame);
+  frame.add(mesh(Box(.88,.88,.05),mat('#f1e7d6')));
+  const tex=new THREE.TextureLoader().load(window.PORTFOLIO_IMG.me); tex.colorSpace=THREE.SRGBColorSpace;
+  const photo=new THREE.Mesh(new THREE.PlaneGeometry(.76,.76), new THREE.MeshStandardMaterial({map:tex, roughness:.9, emissive:'#ffffff', emissiveMap:tex, emissiveIntensity:.18})); photo.position.z=.027; frame.add(photo);
+  g.add(mesh(Cyl(.13,.1,.22,8),mat('#c56b4a'),.66,.11,.2));
+  for(let i=0;i<4;i++){ const lf=mesh(new THREE.ConeGeometry(.06,.34,5),mat('#6f9a6a'),.66+Math.cos(i*1.6)*.05,.36,.2+Math.sin(i*1.6)*.05); lf.rotation.z=Math.cos(i*1.6)*.35; lf.rotation.x=Math.sin(i*1.6)*.35; g.add(lf); }
+});
+
+// indumation: workbench + VR headset
+place('indumation', g=>{
+  const wood=mat('#8b5a3c'), dark=mat('#2f2744');
+  g.add(mesh(Box(1.7,.1,.85),wood,0,.85,0));
+  [-.76,.76].forEach(x=>[-.34,.34].forEach(z=>g.add(mesh(Box(.08,.85,.08),wood,x,.425,z))));
+  g.add(mesh(Box(1.5,.05,.66),wood,0,.28,0));
+  g.add(mesh(Box(.44,.22,.28),mat('#c2553f'),-.42,.41,0));
+  g.add(mesh(Box(.2,.08,.2),mat('#4b4262'),.45,.345,.05));
+  const hs=new THREE.Group(); hs.position.set(.18,1.1,.06); hs.rotation.set(-.12,-.4,0); g.add(hs);
+  hs.add(mesh(Box(.54,.3,.3),mat('#ece7f3')));
+  const visor=glow('#7ff0d2',.9); hs.add(mesh(Box(.48,.21,.04),visor,0,0,.165));
+  const strap=mesh(new THREE.TorusGeometry(.3,.035,6,20),dark,0,0,-.22); strap.rotation.x=Math.PI/2; strap.scale.set(1.02,1,1); hs.add(strap);
+  const iron=mesh(Cyl(.028,.035,.52,6),mat('#e0b25a'),-.5,1.12,.18); iron.rotation.z=1.0; g.add(iron);
+  const tip=mesh(new THREE.ConeGeometry(.022,.1,6),glow('#ff7a3d',2.2),-.5+Math.sin(1.0)*.3,1.12-Math.cos(1.0)*.3,.18); tip.rotation.z=1.0+Math.PI; g.add(tip);
+  animators.push(t=>{ visor.emissiveIntensity=.7+Math.sin(t*2.2)*.35; hs.position.y=1.1+Math.sin(t*1.4)*.025; });
+});
+
+// lezen: books, floating open book, hourglass
+place('lezen', g=>{
+  ['#5f74c9','#e2a456','#9a67c8'].forEach((c,i)=>{ const b=mesh(Box(.78,.13,.54),mat(c),-.15,.066+i*.135,0); b.rotation.y=(i-1)*.2; g.add(b); const pg=mesh(Box(.74,.1,.5),mat('#f4ead5'),-.13,.066+i*.135,0); pg.rotation.y=(i-1)*.2; g.add(pg); });
+  const ob=new THREE.Group(); ob.position.set(-.1,1.25,0); ob.rotation.x=.45; g.add(ob);
+  const pageM=new THREE.MeshStandardMaterial({color:'#fbf1dc', emissive:'#ffcf8a', emissiveIntensity:.45, flatShading:true});
+  const coverM=mat('#9a67c8');
+  [-1,1].forEach(s=>{ const pg=mesh(Box(.44,.02,.6),pageM,s*.21,0,0); pg.rotation.z=-s*.2; ob.add(pg); const cv=mesh(Box(.46,.015,.62),coverM,s*.215,-.02,0); cv.rotation.z=-s*.2; ob.add(cv); });
+  const sparks=[]; for(let i=0;i<6;i++){ const s=new THREE.Mesh(Box(.05,.05,.05),new THREE.MeshBasicMaterial({color:'#7ff0d2',transparent:true})); g.add(s); sparks.push({s,p:i/6}); }
+  const hg=new THREE.Group(); hg.position.set(.72,0,.15); g.add(hg);
+  const woodM=mat('#7a4f36'), glass=new THREE.MeshStandardMaterial({color:'#bfe3ff',transparent:true,opacity:.4,roughness:.1,flatShading:true});
+  hg.add(mesh(Cyl(.18,.18,.05,8),woodM,0,.025,0)); hg.add(mesh(Cyl(.18,.18,.05,8),woodM,0,.66,0));
+  const c1=mesh(new THREE.ConeGeometry(.15,.3,8),glass,0,.2,0); hg.add(c1);
+  const c2=mesh(new THREE.ConeGeometry(.15,.3,8),glass,0,.48,0); c2.rotation.z=Math.PI; hg.add(c2);
+  hg.add(mesh(new THREE.ConeGeometry(.11,.12,8),glow('#ffb45e',.5),0,.11,0));
+  for(let i=0;i<3;i++){ const a=i/3*Math.PI*2; hg.add(mesh(Cyl(.015,.015,.62,5),woodM,Math.cos(a)*.16,.34,Math.sin(a)*.16)); }
+  animators.push(t=>{ ob.position.y=1.25+Math.sin(t*1.2)*.08; ob.rotation.y=Math.sin(t*.5)*.25; hg.rotation.y=t*.3;
+    sparks.forEach(o=>{ const k=(t*.25+o.p)%1; o.s.position.set(-.1+Math.sin(o.p*20+t)*.25,1.35+k*.9,Math.cos(o.p*13)*.2); o.s.material.opacity=Math.sin(k*Math.PI); o.s.rotation.set(t,t*1.3,0); }); });
+});
+
+// tagrun: finish arch, RFID reader, wristband
+function bannerTexture(){ const c=document.createElement('canvas'); c.width=512; c.height=128; const g=c.getContext('2d');
+  g.fillStyle='#ff7a3d'; g.fillRect(0,0,512,128);
+  for(let x=0;x<4;x++) for(let y=0;y<8;y++){ g.fillStyle=(x+y)%2?'#1b1530':'#f3ecdf'; g.fillRect(x*16,y*16,16,16); g.fillRect(448+x*16,y*16,16,16); }
+  g.fillStyle='#fff8ee'; g.font='700 64px Figtree, "Segoe UI", sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText('TAGRUN',256,68);
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; return t; }
+place('tagrun', g=>{
+  const pole=mat('#dcd6ea');
+  [-.78,.78].forEach(x=>g.add(mesh(Cyl(.045,.055,1.75,8),pole,x,.875,0)));
+  const tex=bannerTexture(), side=mat('#ff7a3d'), face=new THREE.MeshStandardMaterial({map:tex, roughness:.8, emissive:'#ffffff', emissiveMap:tex, emissiveIntensity:.15});
+  g.add(mesh(Box(1.62,.4,.04),[side,side,side,side,face,face],0,1.55,0));
+  g.add(mesh(Box(.22,.3,.12),mat('#2a2442'),-.78,1.0,.1));
+  const led=glow('#58f29a',2.2); g.add(mesh(new THREE.SphereGeometry(.03,8,6),led,-.78,1.1,.165));
+  g.add(mesh(Box(.14,.08,.01),glow('#7ff0d2',.7),-.78,.97,.162));
+  for(let i=0;i<6;i++) g.add(mesh(Box(.2,.012,.07),mat('#f3ecdf'),-.62+i*.25,.006,0));
+  const band=mesh(new THREE.TorusGeometry(.16,.045,8,26),new THREE.MeshStandardMaterial({color:'#ff7a3d',emissive:'#ff7a3d',emissiveIntensity:.45,roughness:.5}),0,.85,.1); g.add(band);
+  animators.push(t=>{ band.rotation.y=t*1.2; band.rotation.x=.4+Math.sin(t)*.2; band.position.y=.85+Math.sin(t*1.7)*.07; led.emissiveIntensity=(Math.sin(t*3)>.2)?2.6:.4; });
+});
+
+// brewbuddy: the white prototype box with mug and steam
+place('brewbuddy', g=>{
+  const white=mat('#ece8e1'), dark=mat('#1f1b2b');
+  g.add(mesh(Box(.86,.5,.86),white,0,.25,0));
+  g.add(mesh(Cyl(.24,.24,.02,20),dark,0,.51,0));
+  [-.32,.32].forEach(x=>g.add(mesh(Box(.07,.14,.07),dark,x,.57,-.1)));
+  g.add(mesh(Box(.3,.09,.01),glow('#7ff0d2',.8),0,.3,.435));
+  g.add(mesh(Box(.1,.06,.01),dark,-.25,.12,.435));
+  g.add(mesh(Cyl(.13,.11,.25,14),mat('#d8704c'),0,.645,0));
+  g.add(mesh(Cyl(.118,.118,.01,14),mat('#3b2418'),0,.765,0));
+  const h=mesh(new THREE.TorusGeometry(.075,.022,6,14),mat('#d8704c'),.15,.645,0); g.add(h);
+  const steam=[]; for(let i=0;i<4;i++){ const s=new THREE.Mesh(new THREE.SphereGeometry(.05+i*.008,8,6),new THREE.MeshBasicMaterial({color:'#ffffff',transparent:true,opacity:.5,depthWrite:false})); g.add(s); steam.push({s,p:i/4}); }
+  animators.push(t=>steam.forEach(o=>{ const k=(t*.35+o.p)%1; o.s.position.set(Math.sin(t*2+o.p*9)*.05,.8+k*.7,0); o.s.scale.setScalar(.6+k*1.2); o.s.material.opacity=.45*Math.sin(k*Math.PI); }));
+});
+
+// blender: Amsterdam canal houses + wireframe icosphere
+place('blender', g=>{
+  const specs=[{w:.46,h:1.3,c:'#7b3a2c'},{w:.44,h:1.6,c:'#3c4b62'},{w:.46,h:1.2,c:'#5e3b2b'}];
+  const lit=glow('#ffc977',1.5), off=mat('#241d33'), white=mat('#efe8dc');
+  specs.forEach((s,i)=>{
+    const hx=(i-1)*.47, d=.56;
+    g.add(mesh(Box(s.w,s.h,d),mat(s.c),hx,s.h/2,0));
+    const sh=new THREE.Shape(); const w=s.w/2;
+    sh.moveTo(-w,0); sh.lineTo(w,0); sh.lineTo(w,.1); sh.lineTo(w*.4,.28); sh.lineTo(w*.4,.38); sh.lineTo(-w*.4,.38); sh.lineTo(-w*.4,.28); sh.lineTo(-w,.1); sh.lineTo(-w,0);
+    const gg=new THREE.ExtrudeGeometry(sh,{depth:d,bevelEnabled:false}); gg.translate(0,0,-d/2);
+    g.add(mesh(gg,mat(s.c),hx,s.h,0));
+    g.add(mesh(Box(s.w+.03,.04,d+.02),white,hx,s.h,0));
+    for(let r=0;r*.34+.42<s.h-.08;r++) [-1,1].forEach((c,j)=>{ const on=((i*7+r*3+j)%3)!==0; g.add(mesh(Box(.1,.17,.01),on?lit:off,hx+c*.1,.42+r*.34,d/2+.005)); });
+    g.add(mesh(Box(.12,.24,.01),mat('#2a1f1b'),hx,.12,d/2+.005));
+  });
+  const ico=new THREE.Mesh(new THREE.IcosahedronGeometry(.24,0),new THREE.MeshBasicMaterial({color:'#7ff0d2',wireframe:true,transparent:true,opacity:.9})); ico.position.set(.62,2.05,.1); g.add(ico);
+  animators.push(t=>{ ico.rotation.set(t*.5,t*.7,0); ico.position.y=2.05+Math.sin(t*1.3)*.08; });
+});
+
+// contact: mailbox
+place('contact', g=>{
+  const red=mat('#d9544d');
+  g.add(mesh(Box(.09,.86,.09),mat('#6b4a3a'),0,.43,0));
+  g.add(mesh(Box(.36,.3,.54),red,0,1.0,0));
+  const top=mesh(Cyl(.18,.18,.54,14),red,0,1.15,0); top.rotation.x=Math.PI/2; g.add(top);
+  g.add(mesh(Box(.3,.36,.012),mat('#b9413b'),0,1.06,.272));
+  const letter=mesh(Box(.24,.14,.012),mat('#fbf4e4'),0,1.17,.33); letter.rotation.x=-.5; g.add(letter);
+  const flag=new THREE.Group(); flag.position.set(.195,1.02,-.12); g.add(flag);
+  flag.add(mesh(Box(.02,.34,.02),mat('#cfc6d9'),0,.17,0));
+  flag.add(mesh(Box(.02,.11,.15),mat('#ffcf4a'),0,.29,.075));
+  animators.push(t=>{ flag.rotation.x=Math.sin(t*2.4)*.12; letter.position.y=1.17+Math.sin(t*1.6)*.02; });
+});
+
+// ---------- center tree with lanterns ----------
+const tree=new THREE.Group(); world.add(tree);
+tree.add(mesh(Cyl(.17,.3,2,7),mat('#5b4038'),0,1,0));
+[[0,2.35,0,1.0,'#c9709a'],[.72,2.05,.15,.66,'#b85f8a'],[-.66,2.1,-.1,.7,'#d57fa5'],[.08,2.95,-.18,.62,'#e08db0'],[-.2,2.2,.62,.55,'#c46a93']].forEach(([x,y,z,r,c])=>{ const m=mesh(new THREE.IcosahedronGeometry(r,0),mat(c),x,y,z); m.rotation.set(x,y,z); tree.add(m); });
+const lanterns=[];
+for(let i=0;i<6;i++){ const a=i/6*Math.PI*2+.3, r=.85+(i%2)*.2; const L=new THREE.Group(); L.position.set(Math.cos(a)*r,1.72,Math.sin(a)*r); tree.add(L);
+  const str=new THREE.Mesh(Cyl(.006,.006,.3,4),mat('#2b2238')); str.position.y=.15; L.add(str);
+  const b=mesh(new THREE.SphereGeometry(.075,10,8),glow('#ffb45e',2.4)); L.add(b); lanterns.push({L,p:i}); }
+animators.push(t=>{ lanterns.forEach(o=>{ o.L.rotation.z=Math.sin(t*1.3+o.p)*.12; }); warm.intensity=36+Math.sin(t*7.3)*1.5+Math.sin(t*3.1)*2; });
+
+// scatter: tufts and stones, away from objects and tree
+const keepOut=Object.values(items).map(it=>it.g.position);
+function free(x,z,pad){ if(Math.hypot(x,z)<1.5) return false; return keepOut.every(p=>Math.hypot(p.x-x,p.z-z)>pad); }
+const tuftM=mat('#6f8f63'), stoneM2=mat('#8a7c94');
+for(let i=0,n=0;i<400&&n<60;i++){ const a=Math.random()*Math.PI*2, r=Math.sqrt(Math.random())*6.5, x=Math.cos(a)*r, z=Math.sin(a)*r; if(!free(x,z,1.25)) continue; n++;
+  const t=mesh(new THREE.ConeGeometry(.05+Math.random()*.04,.2+Math.random()*.2,4),tuftM,x,.12,z); t.rotation.z=(Math.random()-.5)*.4; world.add(t); }
+for(let i=0,n=0;i<300&&n<22;i++){ const a=Math.random()*Math.PI*2, r=1.8+Math.random()*4.6, x=Math.cos(a)*r, z=Math.sin(a)*r; if(!free(x,z,1.3)) continue; n++;
+  const s=mesh(Cyl(.16+Math.random()*.14,.2+Math.random()*.14,.07,7),stoneM2,x,.02,z); s.rotation.y=Math.random()*3; world.add(s); }
+
+// ---------- fireflies ----------
+const FF=80, ffBase=[], ffPos=new Float32Array(FF*3);
+for(let i=0;i<FF;i++){ const a=Math.random()*Math.PI*2, r=1.5+Math.random()*8.5; ffBase.push([Math.cos(a)*r, .3+Math.random()*4.2, Math.sin(a)*r, Math.random()*10, .3+Math.random()*.6]); }
+const ffGeo=new THREE.BufferGeometry(); ffGeo.setAttribute('position',new THREE.BufferAttribute(ffPos,3));
+const fireflies=new THREE.Points(ffGeo,new THREE.PointsMaterial({map:dotTexture(),color:'#ffc873',size:.32,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending})); scene.add(fireflies);
+
+// ---------- camera + controls ----------
+const controls=new OrbitControls(camera, renderer.domElement);
+Object.assign(controls,{enableDamping:true,dampingFactor:.07,enablePan:false,minDistance:2.2,maxDistance:30,maxPolarAngle:1.36,minPolarAngle:.3,autoRotateSpeed:.35,rotateSpeed:.7,zoomSpeed:.8});
+const HOME_T=new THREE.Vector3(0,.9,0);
+function homePos(){ const a=innerWidth/innerHeight, k=a<.8?2.15:a<1.2?1.3:1; return new THREE.Vector3(0,8.2*k,15.5*k); }
+controls.target.copy(HOME_T);
+let mode='overview', focusId=null, lastInteract=performance.now(), tween=null;
+controls.addEventListener('start',()=>{ lastInteract=performance.now(); });
+
+const ease=k=>k<.5?4*k*k*k:1-Math.pow(-2*k+2,3)/2;
+function flyTo(pos,target,dur=1.3){
+  const s0=new THREE.Spherical().setFromVector3(camera.position.clone().sub(target)), s1=new THREE.Spherical().setFromVector3(pos.clone().sub(target));
+  const c0=new THREE.Spherical().setFromVector3(camera.position.clone()), c1=new THREE.Spherical().setFromVector3(pos.clone());
+  let dT=c1.theta-c0.theta; while(dT>Math.PI) dT-=Math.PI*2; while(dT<-Math.PI) dT+=Math.PI*2;
+  tween={c0,c1,dT,t0:controls.target.clone(),t1:target.clone(),start:performance.now(),dur:reduce?1:dur*1000,bump:Math.abs(dT)>.9?2.2:0};
+  controls.enabled=false;
+}
+function focusPose(id){
+  const it=items[id]; const a=it.a, dir=new THREE.Vector3(Math.sin(a),0,Math.cos(a));
+  const k=innerWidth/innerHeight<.8?1.8:1;
+  const T=it.g.position.clone().add(new THREE.Vector3(0,it.focusH,0));
+  const P=T.clone().add(dir.multiplyScalar(4.1*k)).add(new THREE.Vector3(0,1.5*k,0));
+  return [P,T];
+}
+// panel offset (so the object sits beside the panel, not under it)
+let off={x:0,y:0}, offTarget={x:0,y:0};
+function panelOffset(open){
+  if(!open) return {x:0,y:0};
+  if(innerWidth>720) return {x:(Math.min(470,innerWidth-32)+16)/2, y:0};
+  return {x:0, y:innerHeight*.64/2};
+}
+window.Scene={
+  focus(id){ if(!items[id]) return; mode='focus'; focusId=id; const [P,T]=focusPose(id); flyTo(P,T); offTarget=panelOffset(true); controls.autoRotate=false; },
+  overview(){ mode='overview'; focusId=null; flyTo(homePos(),HOME_T,1.4); offTarget=panelOffset(false); lastInteract=performance.now(); }
+};
+
+// ---------- picking ----------
+const ray=new THREE.Raycaster(), ndc=new THREE.Vector2();
+let hoverId=null, downAt=null;
+function pick(e){ const r=canvas.getBoundingClientRect(); ndc.set(((e.clientX-r.left)/r.width)*2-1, -((e.clientY-r.top)/r.height)*2+1); ray.setFromCamera(ndc,camera); const h=ray.intersectObjects(hitboxes,false)[0]; return h?h.object.userData.id:null; }
+canvas.addEventListener('pointermove',e=>{ if(e.pointerType!=='mouse') return; hoverId=pick(e); canvas.classList.toggle('pointer',!!hoverId); });
+canvas.addEventListener('pointerleave',()=>{ hoverId=null; });
+canvas.addEventListener('pointerdown',e=>{ downAt=[e.clientX,e.clientY]; lastInteract=performance.now(); });
+canvas.addEventListener('pointerup',e=>{ if(!downAt) return; const moved=Math.hypot(e.clientX-downAt[0],e.clientY-downAt[1]); downAt=null; if(moved>6) return; const id=pick(e); if(id) UI.open(id,{keepFocus:true}); });
+document.querySelectorAll('.tag3d').forEach(b=>{ b.addEventListener('mouseenter',()=>hoverId=b.dataset.id); b.addEventListener('mouseleave',()=>hoverId=null); b.addEventListener('focus',()=>hoverId=b.dataset.id); b.addEventListener('blur',()=>hoverId=null); });
+
+// ---------- resize ----------
+function resize(){ const w=innerWidth,h=innerHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); offTarget=panelOffset(mode==='focus'); if(mode==='overview'&&!tween) camera.position.copy(homePos()); }
+addEventListener('resize',resize); resize();
+camera.position.copy(homePos()).multiplyScalar(1.9).add(new THREE.Vector3(-6,4,0));
+
+// ---------- loop ----------
+const clock=new THREE.Clock(); const v=new THREE.Vector3(); let first=true;
+function frame(){
+  const t=clock.getElapsedTime(), now=performance.now();
+  if(tween){ const k=Math.min(1,(now-tween.start)/tween.dur), e=ease(k);
+    const s=new THREE.Spherical(THREE.MathUtils.lerp(tween.c0.radius,tween.c1.radius,e)+Math.sin(Math.PI*e)*tween.bump, THREE.MathUtils.lerp(tween.c0.phi,tween.c1.phi,e), tween.c0.theta+tween.dT*e);
+    camera.position.setFromSpherical(s); controls.target.lerpVectors(tween.t0,tween.t1,e);
+    if(k>=1){ tween=null; controls.enabled=true; } }
+  controls.autoRotate = mode==='overview' && !tween && !reduce && now-lastInteract>6000;
+  controls.update();
+  // view offset
+  const d=reduce?1:.08; off.x+=(offTarget.x-off.x)*d; off.y+=(offTarget.y-off.y)*d;
+  if(Math.abs(off.x)<.5&&Math.abs(off.y)<.5){ if(camera.view&&camera.view.enabled){ camera.clearViewOffset(); } }
+  else camera.setViewOffset(innerWidth,innerHeight,off.x,off.y,innerWidth,innerHeight);
+  if(!reduce){ world.position.y=Math.sin(t*.5)*.08; animators.forEach(f=>f(t)); floaters.forEach(o=>{ o.m.position.y=o.y+Math.sin(t*.6+o.p)*.25; o.m.rotation.y=t*.1+o.p; });
+    for(let i=0;i<FF;i++){ const b=ffBase[i]; ffPos[i*3]=b[0]+Math.sin(t*b[4]+b[3])*.5; ffPos[i*3+1]=b[1]+Math.sin(t*b[4]*1.3+b[3]*2)*.35; ffPos[i*3+2]=b[2]+Math.cos(t*b[4]+b[3])*.5; }
+    ffGeo.attributes.position.needsUpdate=true; }
+  else if(first){ animators.forEach(f=>f(0)); for(let i=0;i<FF;i++){ ffPos.set(ffBase[i].slice(0,3),i*3); } ffGeo.attributes.position.needsUpdate=true; }
+  // hover + labels
+  const W=innerWidth,H=innerHeight;
+  for(const id in items){ const it=items[id]; const target=(id===hoverId||id===focusId)?1:0; it.hover+=(target-it.hover)*.15;
+    it.inner.scale.setScalar(1+it.hover*.06); it.ring.material.opacity=.22+it.hover*.6+Math.sin(t*2+it.a)*.06;
+    if(it.el){ v.set(0,it.labelH,0); it.g.localToWorld(v); v.project(camera);
+      it.el.classList.toggle('offscreen',v.z>1); if(v.z<=1){ const x=(v.x*.5+.5)*W, y=(-v.y*.5+.5)*H; it.el.style.setProperty('--x',x.toFixed(1)+'px'); it.el.style.setProperty('--y',y.toFixed(1)+'px'); }
+      it.el.classList.toggle('hot',id===hoverId); } }
+  renderer.render(scene,camera);
+  if(first){ first=false; UI.ready(); if(UI.current) Scene.focus(UI.current); else flyTo(homePos(),HOME_T,reduce?.01:2.4); }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+
+</body>
+</html>
