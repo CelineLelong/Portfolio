@@ -22,7 +22,7 @@ This repository contains my interactive portfolio: a 3D island built with Three.
 
 ## 💻 Tech Stack
 
-- **Core:** Unity | Blender | Git
+- **Core:** Unity | Blender | Adobe Creative Cloud | Git
 - **Languages:** C# | JavaScript | Python
 - **Hardware:** Raspberry Pi | ESP32 | Meta Quest 3
 - **Focus Areas:** VR Interaction, Hand Tracking, Real-time 3D, IoT
