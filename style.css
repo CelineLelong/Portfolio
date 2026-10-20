@@ -74,7 +74,16 @@ body.focused .hint,body.no3d .hint{opacity:0;pointer-events:none}
 .dock .primary{background:var(--lantern);color:#261a0c;font-weight:600}
 .dock .primary:hover{background:#ffc47c}
 
-.copy{position:fixed;z-index:9;right:28px;bottom:calc(30px + env(safe-area-inset-bottom,0px));margin:0;font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--ink-3)}
+.copy{position:fixed;z-index:9;right:28px;bottom:calc(30px + env(safe-area-inset-bottom,0px));margin:0;font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--ink-3);transition:opacity .35s}
+
+/* ---------- tablet: hint, dock and copyright don't fit side by side, so stack them ---------- */
+@media (min-width:721px) and (max-width:1280px){
+  .hint{left:24px;right:24px;text-align:center;justify-items:center;bottom:calc(100px + env(safe-area-inset-bottom,0px));text-shadow:0 1px 12px rgba(19,16,40,.9)}
+  .dock{bottom:calc(38px + env(safe-area-inset-bottom,0px))}
+  .copy{left:0;right:0;text-align:center;bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+  body.panel-open .dock{opacity:0;pointer-events:none;transform:translate(-50%,20px)}
+  body.panel-open .copy{opacity:0}
+}
 
 /* ---------- panel ---------- */
 #panel{position:fixed;z-index:20;top:16px;right:16px;bottom:16px;width:min(470px,calc(100vw - 32px));display:flex;flex-direction:column;border-radius:22px;background:var(--glass-strong);border:1px solid var(--line);box-shadow:0 30px 80px rgba(0,0,0,.45);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);transform:translateX(calc(100% + 40px));visibility:hidden;transition:transform .6s var(--ease),visibility .6s}
@@ -192,11 +201,21 @@ body.no3d .no3d-note{display:block}
 /* ---------- mobile ---------- */
 @media (max-width:720px){
   .lang{top:calc(14px + env(safe-area-inset-top,0px));right:14px}
-  .brand{left:18px;top:calc(16px + env(safe-area-inset-top,0px));max-width:calc(100vw - 120px)}
-  .tagline{font-size:14.5px;margin:8px 0 10px}
-  .hint{left:0;right:0;text-align:center;bottom:calc(98px + env(safe-area-inset-bottom,0px));font-size:12.5px}
+  /* soft scrim so the header stays readable over the scene */
+  body:not(.no3d)::before{content:"";position:fixed;z-index:4;inset:0 0 auto;height:calc(230px + env(safe-area-inset-top,0px));background:linear-gradient(var(--night) 0%,rgba(19,16,40,.75) 55%,rgba(19,16,40,0));pointer-events:none}
+  .brand{left:18px;right:18px;top:calc(18px + env(safe-area-inset-top,0px));max-width:none}
+  .brand,body:not(.no3d)::before{transition:opacity .4s}
+  body.panel-open .brand,body.panel-open::before{opacity:0;pointer-events:none}
+  .eyebrow{font-size:10.5px;letter-spacing:.14em;margin-bottom:8px}
+  .eb-long{display:none}
+  .brand h1{font-size:clamp(34px,10vw,42px)}
+  .tagline{font-size:14.5px;line-height:1.5;margin:8px 0 12px;max-width:30ch}
+  .badge{font-size:12.5px;padding:6px 12px 6px 10px}
+  .hint{left:16px;right:16px;text-align:center;bottom:calc(92px + env(safe-area-inset-bottom,0px));font-size:13px}
+  .hint small{font-size:10px;letter-spacing:.1em}
   .dock{bottom:calc(30px + env(safe-area-inset-bottom,0px))}
-  .dock button{padding:10px 13px;font-size:13.5px}
+  .dock{width:max-content;max-width:calc(100vw - 32px)}
+  .dock button{padding:11px 14px;font-size:14px;min-height:44px}
   body.panel-open .dock{opacity:0;pointer-events:none;transform:translate(-50%,20px)}
   .copy{left:0;right:0;text-align:center;bottom:calc(8px + env(safe-area-inset-bottom,0px));font-size:10px}
   body.panel-open .copy{opacity:0}
@@ -208,7 +227,11 @@ body.no3d .no3d-note{display:block}
   .facts > div{grid-template-columns:1fr;gap:3px}
   .row{grid-template-columns:1fr auto;gap:6px 12px}
   .row .when{grid-column:1 / -1;padding-top:0}
-  .tag3d{font-size:10px;padding:4px 9px 4px 8px}
+  .tag3d{font-size:10px;letter-spacing:.06em;padding:6px 10px 6px 8px;background:rgba(21,17,43,.78)}
+}
+@media (max-width:720px) and (max-height:700px){
+  .tagline{display:none}
+  #panel{height:74dvh}
 }
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition-duration:.01ms!important}

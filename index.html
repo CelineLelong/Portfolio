@@ -21,7 +21,7 @@
 <div id="loader" role="status"><div class="loader-inner"><span class="lamp"></span><p data-t="loader">Het atelier gaat open…</p></div></div>
 
 <header class="brand">
-  <p class="eyebrow">Portfolio · XR Development · Howest MCT</p>
+  <p class="eyebrow"><span class="eb-long">Portfolio · </span>XR Development · Howest MCT</p>
   <h1>Céline <span>Lelong</span></h1>
   <p class="tagline" data-t="tagline">Ik bouw werelden die je met je handen ontdekt: in VR, in 3D en met een beetje hardware.</p>
   <button class="badge" type="button" data-open="about"><i></i><span data-t-html="badge"><b>Zoekt een stage</b> · Feb – Jun 2027</span></button>
@@ -44,13 +44,13 @@
   <button type="button" data-open="contact" data-t="contact">Contact</button>
 </nav>
 
-<aside id="panel" aria-hidden="true" aria-labelledby="panel-title">
+<aside id="panel" inert aria-labelledby="panel-title">
   <div class="panel-top"><span class="where" id="panel-where"></span><button class="icon-btn" type="button" id="panel-close" data-t-aria="closePanel" aria-label="Sluiten en terug naar het eiland">✕</button></div>
   <div class="panel-body" id="panel-body"></div>
   <nav class="panel-nav" id="panel-nav"></nav>
 </aside>
 
-<div id="modal" aria-hidden="true">
+<div id="modal" inert>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <div class="sheet-head">
       <div><h2 id="modal-title" data-t="allProjects">Alle projecten</h2><p data-t="modalSub">Van IoT in het eerste jaar tot een VR-trainer voor een echte opdrachtgever.</p><p class="no3d-note" data-t="no3d">De 3D-weergave kan niet laden in deze browser, dus je ziet de projecten hier als lijst.</p></div>
@@ -75,6 +75,7 @@ const T = {
     tagline:'Ik bouw werelden die je met je handen ontdekt: in VR, in 3D en met een beetje hardware.',
     badge:'<b>Zoekt een stage</b> · Feb – Jun 2027',
     hint:'Klik op een object om het project te openen', hintSmall:'sleep om te draaien · zoom met scroll of twee vingers',
+    hintTouch:'Tik op een object om het project te openen', hintSmallTouch:'veeg om te draaien · knijp om te zoomen',
     mainMenu:'Hoofdmenu', allProjects:'Alle projecten', aboutMe:'Over mij', contact:'Contact',
     closePanel:'Sluiten en terug naar het eiland', close:'Sluiten',
     modalSub:'Van IoT in het eerste jaar tot een VR-trainer voor een echte opdrachtgever.',
@@ -101,6 +102,7 @@ const T = {
     tagline:'I build worlds you explore with your hands: in VR, in 3D and with a little hardware.',
     badge:'<b>Looking for an internship</b> · Feb – Jun 2027',
     hint:'Click an object to open the project', hintSmall:'drag to rotate · zoom with scroll or two fingers',
+    hintTouch:'Tap an object to open the project', hintSmallTouch:'swipe to rotate · pinch to zoom',
     mainMenu:'Main menu', allProjects:'All projects', aboutMe:'About me', contact:'Contact',
     closePanel:'Close and return to the island', close:'Close',
     modalSub:'From IoT in my first year to a VR trainer for a real client.',
@@ -268,7 +270,7 @@ function open(id, opts={}){
   body.innerHTML=render(id);
   body.scrollTop=0;
   renderNav(id);
-  panel.classList.add('open'); panel.setAttribute('aria-hidden','false');
+  panel.inert=false; panel.classList.add('open');
   document.body.classList.add('focused','panel-open');
   try{ if(location.hash!=='#'+id) history.replaceState(null,'','#'+id); }catch(e){}
   if(window.Scene) window.Scene.focus(id);
@@ -278,16 +280,17 @@ function close(){
   if(!current) return;
   current=null;
   body.querySelectorAll('video').forEach(v=>v.pause());
-  panel.classList.remove('open'); panel.setAttribute('aria-hidden','true');
+  // move focus out before hiding, so a hidden panel never keeps focus
+  if(lastFocus && lastFocus.focus) lastFocus.focus({preventScroll:true});
+  panel.classList.remove('open'); panel.inert=true;
   document.body.classList.remove('focused','panel-open');
   try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){}
   if(window.Scene) window.Scene.overview();
-  if(lastFocus && lastFocus.focus) lastFocus.focus({preventScroll:true});
 }
 function step(d){ if(!current) return; const i=ORDER.indexOf(current); open(ORDER[(i+d+ORDER.length)%ORDER.length],{keepFocus:true}); }
 
-function openModal(){ lastFocus=document.activeElement; modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); setTimeout(()=>$('#modal-close').focus({preventScroll:true}),50); }
-function closeModal(restore=true){ if(!modal.classList.contains('open')) return; modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); if(restore && lastFocus && lastFocus.focus) lastFocus.focus({preventScroll:true}); }
+function openModal(){ lastFocus=document.activeElement; modal.inert=false; modal.classList.add('open'); setTimeout(()=>$('#modal-close').focus({preventScroll:true}),50); }
+function closeModal(restore=true){ if(!modal.classList.contains('open')) return; if(restore && lastFocus && lastFocus.focus) lastFocus.focus({preventScroll:true}); modal.classList.remove('open'); modal.inert=true; }
 $('#btn-all').addEventListener('click',openModal);
 $('#modal-close').addEventListener('click',()=>closeModal());
 modal.addEventListener('click',e=>{ if(e.target===modal) closeModal(); });
@@ -338,6 +341,7 @@ function fallback(){
 }
 window.UI={open,ready,fallback,t,get current(){return current;}};
 
+if(matchMedia('(hover: none)').matches) document.querySelectorAll('.hint [data-t]').forEach(el=>{ el.dataset.t+='Touch'; });
 setLang(lang,false);
 const initial=(location.hash||'').slice(1);
 if(byId[initial]) open(initial,{keepFocus:true});
@@ -620,7 +624,7 @@ const fireflies=new THREE.Points(ffGeo,new THREE.PointsMaterial({map:dotTexture(
 const controls=new OrbitControls(camera, renderer.domElement);
 Object.assign(controls,{enableDamping:true,dampingFactor:.07,enablePan:false,minDistance:2.2,maxDistance:30,maxPolarAngle:1.36,minPolarAngle:.3,autoRotateSpeed:.35,rotateSpeed:.7,zoomSpeed:.8});
 const HOME_T=new THREE.Vector3(0,.9,0);
-function homePos(){ const a=innerWidth/innerHeight, k=a<.8?2.15:a<1.2?1.3:1; return new THREE.Vector3(0,8.2*k,15.5*k); }
+function homePos(){ const a=innerWidth/innerHeight, k=Math.max(1,1.55/a), s=THREE.MathUtils.clamp((1.2-a)/.6,0,1); return new THREE.Vector3(0,(8.2+2.6*s)*k,(15.5-2.3*s)*k); }
 controls.target.copy(HOME_T);
 let mode='overview', focusId=null, lastInteract=performance.now(), tween=null;
 controls.addEventListener('start',()=>{ lastInteract=performance.now(); });
@@ -635,7 +639,7 @@ function flyTo(pos,target,dur=1.3){
 }
 function focusPose(id){
   const it=items[id]; const a=it.a, dir=new THREE.Vector3(Math.sin(a),0,Math.cos(a));
-  const k=innerWidth/innerHeight<.8?1.8:1;
+  const k=innerWidth/innerHeight<.8?2.4:1;
   const T=it.g.position.clone().add(new THREE.Vector3(0,it.focusH,0));
   const P=T.clone().add(dir.multiplyScalar(4.1*k)).add(new THREE.Vector3(0,1.5*k,0));
   return [P,T];
@@ -645,7 +649,7 @@ let off={x:0,y:0}, offTarget={x:0,y:0};
 function panelOffset(open){
   if(!open) return {x:0,y:0};
   if(innerWidth>720) return {x:(Math.min(470,innerWidth-32)+16)/2, y:0};
-  return {x:0, y:innerHeight*.64/2};
+  return {x:0, y:document.getElementById('panel').offsetHeight/2};
 }
 window.Scene={
   focus(id){ if(!items[id]) return; mode='focus'; focusId=id; const [P,T]=focusPose(id); flyTo(P,T); offTarget=panelOffset(true); controls.autoRotate=false; },
@@ -668,7 +672,7 @@ addEventListener('resize',resize); resize();
 camera.position.copy(homePos()).multiplyScalar(1.9).add(new THREE.Vector3(-6,4,0));
 
 // ---------- loop ----------
-const clock=new THREE.Clock(); const v=new THREE.Vector3(); let first=true;
+const clock=new THREE.Clock(); const v=new THREE.Vector3(), tags=[]; let first=true;
 function frame(){
   const t=clock.getElapsedTime(), now=performance.now();
   if(tween){ const k=Math.min(1,(now-tween.start)/tween.dur), e=ease(k);
@@ -690,8 +694,16 @@ function frame(){
   for(const id in items){ const it=items[id]; const target=(id===hoverId||id===focusId)?1:0; it.hover+=(target-it.hover)*.15;
     it.inner.scale.setScalar(1+it.hover*.06); it.ring.material.opacity=.22+it.hover*.6+Math.sin(t*2+it.a)*.06;
     if(it.el){ v.set(0,it.labelH,0); it.g.localToWorld(v); v.project(camera);
-      it.el.classList.toggle('offscreen',v.z>1); if(v.z<=1){ const x=(v.x*.5+.5)*W, y=(-v.y*.5+.5)*H; it.el.style.setProperty('--x',x.toFixed(1)+'px'); it.el.style.setProperty('--y',y.toFixed(1)+'px'); }
+      it.el.classList.toggle('offscreen',v.z>1); if(v.z<=1){ const w=it.el.offsetWidth, m=8; tags.push({it, w, h:it.el.offsetHeight, x:Math.min(Math.max((v.x*.5+.5)*W,w/2+m),W-w/2-m), y:(-v.y*.5+.5)*H}); }
       it.el.classList.toggle('hot',id===hoverId); } }
+  // lowest label keeps its spot, labels above it move up until nothing overlaps
+  tags.sort((a,b)=>b.y-a.y);
+  tags.forEach((l,i)=>{ let ty=l.y;
+    for(let moved=true;moved;){ moved=false;
+      for(let j=0;j<i;j++){ const o=tags[j]; if(Math.abs(l.x-o.x)<(l.w+o.w)/2+4 && ty>o.ty-o.h-4 && ty<o.ty+l.h+4){ ty=o.ty-o.h-4; moved=true; } } }
+    l.ty=ty; l.it.oy=(l.it.oy||0)+((ty-l.y)-(l.it.oy||0))*(reduce?1:.2);
+    l.it.el.style.setProperty('--x',l.x.toFixed(1)+'px'); l.it.el.style.setProperty('--y',(l.y+l.it.oy).toFixed(1)+'px'); });
+  tags.length=0;
   renderer.render(scene,camera);
   if(first){ first=false; UI.ready(); if(UI.current) Scene.focus(UI.current); else flyTo(homePos(),HOME_T,reduce?.01:2.4); }
   requestAnimationFrame(frame);
